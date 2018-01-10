@@ -7,10 +7,10 @@
 #define hauteurPlateau 25
 #define largeurPlateau 100
 
-#define HAUT 72
-#define BAS 80
-#define GAUCHE 75
-#define DROITE 77 
+#define HAUT 72 
+#define GAUCHE 75 
+#define BAS 80		
+#define DROITE 77
 
 struct position {
 	int x;
@@ -21,7 +21,7 @@ typedef struct position position;
 
 struct serpent {
 	position tete;
-	position queue;
+	position queue[99];
 	int taille;
 };
 
@@ -65,22 +65,60 @@ void generateFruit(char carte[largeurPlateau][hauteurPlateau]) {
 void premierSerpent(char carte[largeurPlateau][hauteurPlateau], serpent serpent) {
 		serpent.tete.x = largeurPlateau / 2;
 		serpent.tete.y = hauteurPlateau / 2;
-		serpent.queue.x = serpent.tete.x;
-		serpent.queue.y = serpent.tete.y - 3;
+		serpent.taille = 3;
+		for (int i = 0;i < 3 ;i++) {
+			serpent.queue[i].x = serpent.tete.x;
+			serpent.queue[i].y = serpent.queue[i-1].y + 1;
+			carte[serpent.queue[i].x][serpent.queue[i].y] = '#';
+		}
 		carte[serpent.tete.x][serpent.tete.y] = '@';
-		carte[serpent.queue.x][serpent.queue.y] = '#';
 	
 }
 
 void initialisation(char carte[largeurPlateau][hauteurPlateau],serpent serpent) {
 	definePlateau(carte);
 	generateFruit(carte);
-	refreshPlateau(carte);
 	premierSerpent(carte,serpent);
+	refreshPlateau(carte);
+}
+
+void deplacement(char carte[largeurPlateau][hauteurPlateau], serpent serpent, int* pointeurkey) {
+	printf("%d", *pointeurkey );
+
+}
+
+void touche(char carte[largeurPlateau][hauteurPlateau], serpent serpent) {
+	int key;
+	while (true) {
+		switch (_getch()) {
+
+			case DROITE:
+				key = 4;
+				deplacement(carte, serpent, &key);
+				break;
+
+			case HAUT:
+				key = 1;
+				deplacement(carte, serpent, &key);
+				break;
+
+			case GAUCHE:
+				key = 2;
+				deplacement(carte, serpent, &key);
+				break;
+
+			case BAS:
+				key = 3;
+				deplacement(carte, serpent, &key);
+				break;
+
+		}
+	}
 }
 
 int main(serpent serpent) {
 	char carte[largeurPlateau][hauteurPlateau];
 	initialisation(carte,serpent);
+	touche(carte,serpent);
 	return 0;
 }
