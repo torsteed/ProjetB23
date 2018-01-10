@@ -12,6 +12,13 @@
 #define BAS 80		
 #define DROITE 77
 
+void Gotoxy(int column, int row) {
+	COORD c;
+	c.X = column;
+	c.Y = row;
+	SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), c);
+}
+
 struct position {
 	int x;
 	int y;
@@ -78,7 +85,7 @@ void premierSerpent(char carte[largeurPlateau][hauteurPlateau], serpent serpent)
 void initialisation(char carte[largeurPlateau][hauteurPlateau],serpent serpent) {
 	definePlateau(carte);
 	generateFruit(carte);
-	premierSerpent(carte,serpent);
+	premierSerpent(carte, serpent);
 	refreshPlateau(carte);
 }
 
@@ -116,9 +123,59 @@ void touche(char carte[largeurPlateau][hauteurPlateau], serpent serpent) {
 	}
 }
 
+int menu(const char* ch[], int taille, int x, int y)
+{
+	int i, curs = 0;
+	Gotoxy(x, y);
+	int y2 = y;
+	for (i = 0; i < taille; i++) {
+		printf("  %s\n", ch[i]);
+		y2++;
+		Gotoxy(x, y2);
+	}
+	Gotoxy(x, y);
+	while (1)
+	{
+		int touche = _getch();
+		if (touche == 0x50 && curs < taille - 1)
+			curs++;
+		if (touche == 0x48 && curs > 0)
+			curs--;
+		if (touche == 0x0D)
+			return curs + 1;
+		int y3 = y;
+		Gotoxy(x, y);
+		for (i = 0; i < taille; i++) {
+			printf("%c\n", (i == curs) ? '>' : ' ');
+			y3++;
+			Gotoxy(x, y3);
+		}
+	}
+	return 0;
+}
+
+void accueil(char carte[largeurPlateau][hauteurPlateau], serpent serpent) {
+	Gotoxy(5, 10);
+	printf("Bienvenue dans le Snake\n\n");
+	printf("--------------------------------------------------------------\n\n");
+	Gotoxy(5, 14);
+	printf("Choisissez une option :\n\n");
+	const char* tabchoix[] = {"Jouer (deplacement manuel)","Quitter"};
+	int c = menu(tabchoix, 2, 5, 16);
+	switch (c) {
+	case 1:
+		initialisation(carte, serpent);
+		break;
+	case 2:
+		system("cls");
+		exit(1);
+		break;
+	}
+}
+
 int main(serpent serpent) {
 	char carte[largeurPlateau][hauteurPlateau];
-	initialisation(carte,serpent);
+	accueil(carte, serpent);
 	touche(carte,serpent);
 	return 0;
 }
