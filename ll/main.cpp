@@ -173,6 +173,30 @@ void accueil(char carte[largeurPlateau][hauteurPlateau], serpent serpent) {
 	}
 }
 
+void gameover(char carte[largeurPlateau][hauteurPlateau], serpent serpent) {
+	_getch();
+	system("cls");
+	Gotoxy(5, 10);
+	printf("Vous avez perdu :(");
+	Gotoxy(5, 12);
+	printf("Voulez-vous rejouer?");
+	const char* tabchoix[] = { "Rejouer","Menu principal","Quitter" };
+	int c = menu(tabchoix, 3, 5, 14);
+	switch (c) {
+	case 1:
+		initialisation(carte, serpent);
+		break;
+	case 2:
+		system("cls");
+		accueil(carte, serpent);
+		break;
+	case 3:
+		system("cls");
+		exit(1);
+		break;
+	}
+}
+
 int main(serpent serpent) {
 	char carte[largeurPlateau][hauteurPlateau];
 	accueil(carte, serpent);
