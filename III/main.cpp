@@ -93,76 +93,88 @@ void generateFruit(char carte[largeurPlateau][hauteurPlateau],position* fruit) {
 	carte[fruit->x][fruit->y] = 'O';
 }
 
-void queueDeplacement(char carte[largeurPlateau][hauteurPlateau], serpent* serpent) {
-	carte[serpent->queue[serpent->taille-1].x][serpent->queue[serpent->taille-1].y] = ' ';
-	for (int y = serpent->taille; y > 0; y--) {  //queue qui bouge
+void queueDeplacement(char carte[largeurPlateau][hauteurPlateau], serpent* serpent,int direction) {
+	
+	for (int y = serpent->taille-1; y >= 1; y--) {  //queue qui bouge
 		serpent->queue[y].x = serpent->queue[y - 1].x;
 		serpent->queue[y].y = serpent->queue[y - 1].y;
 		carte[serpent->queue[y].x][serpent->queue[y].y] = '#';
 	}
+	switch (direction)
+	{
+	case 1 :
+		serpent->queue[0].y--;
+		if (serpent->queue[0].y == 0) {
+			gameover(carte, *serpent);
+		}
+		break;
+	case 2 :
+		serpent->queue[0].x--;
+		if (serpent->queue[0].x == 0) {
+			gameover(carte, *serpent);
+		}
+		break;
+	case 3 :
+		serpent->queue[0].y++;
+		if (serpent->queue[0].y == hauteurPlateau-1) {
+			gameover(carte, *serpent);
+		}
+		break;
+	case 4 :
+		serpent->queue[0].x++;
+		if (serpent->queue[0].x == largeurPlateau-1) {
+			gameover(carte, *serpent);
+		}
+		break;
+	}
 	carte[serpent->queue[0].x][serpent->queue[0].y] = '@';
+	carte[serpent->queue[serpent->taille - 1].x][serpent->queue[serpent->taille - 1].y] = ' ';
 }
 
 void deplacement(char carte[largeurPlateau][hauteurPlateau], serpent* serpent,position* fruit) {
+	int direction = 0;
 	while (true) {
 		switch (_getch()) {
 		case HAUT:
-			if (serpent->queue[0].y != 1 && serpent->queue[1].y != serpent->queue[0].y-1) {
-				serpent->queue[0].y--;
-				queueDeplacement(carte, &*serpent);
-				printf("%d %d\n", serpent->queue[0].x, serpent->queue[0].y);
-				printf("%d %d\n", serpent->queue[1].x, serpent->queue[1].y);
-			}
-			else {
-				gameover(carte, *serpent);
-			}
+				direction = 1;
+				queueDeplacement(carte, &*serpent, direction);
+			
 			break;
 
 		case GAUCHE:
-			if (serpent->queue[0].x != 1 && serpent->queue[1].x != serpent->queue[0].x - 1) {
-				serpent->queue[0].x--;
-				queueDeplacement(carte, &*serpent);
-			}
-			else {
-				gameover(carte, *serpent);
-			}
+				
+				direction = 2;
+				queueDeplacement(carte, &*serpent, direction);
+			
 			break;
 
 		case BAS:
-			if (serpent->queue[0].y != hauteurPlateau - 2 && serpent->queue[1].y != serpent->queue[0].y + 1) {
-				serpent->queue[0].y++;
-				queueDeplacement(carte, &*serpent);
-			}
-			else {
-				gameover(carte, *serpent);
-			}
+			
+				direction = 3;
+				queueDeplacement(carte, &*serpent, direction);
+			
 			break;
 
 		case DROITE:
-			if (serpent->queue[0].y != largeurPlateau - 2 && serpent->queue[1].x != serpent->queue[0].x + 1) {
-				serpent->queue[0].x++;
-				queueDeplacement(carte, &*serpent);
-			}
-			else {
-				gameover(carte, *serpent);
-			}
+			
+				direction = 4;
+				queueDeplacement(carte, &*serpent, direction);
+			
 			break;
 		}
+		
 		//collision
 		if (serpent->queue[0].x == fruit->x && serpent->queue[0].y == fruit->y) {
 			serpent->taille++;
 			generateFruit(carte, &*fruit);
 		}
-		/*for (int i = 1; i < serpent->taille-1; i++) {
+		for (int i = 1; i < serpent->taille-1; i++) {
 			if (serpent->queue[0].x == serpent->queue[i].x && serpent->queue[0].y == serpent->queue[i].y) {
 				gameover(carte, *serpent);
 				break;
 			}
-		}*/
+		}
 		refreshPlateau(carte, *serpent);
-		printf("%d %d\n", serpent->queue[0].x, serpent->queue[0].y);
-		printf("%d %d\n", serpent->queue[1].x, serpent->queue[1].y);
-		printf("%d %d\n", serpent->queue[serpent->taille-1].x, serpent->queue[serpent->taille-1].y);
 	}
 }
 
@@ -172,8 +184,8 @@ void premierSerpent(char carte[largeurPlateau][hauteurPlateau], serpent serpent)
 	generateFruit(carte,&fruit);
 		serpent.queue[0].x = largeurPlateau / 2;
 		serpent.queue[0].y = hauteurPlateau / 2;
-		serpent.taille = 5;
-		for (int i = 1;i < serpent.taille ;i++) {
+		serpent.taille = 7;
+		for (int i = 1;i < serpent.taille-1 ;i++) {
 			serpent.queue[i].x = serpent.queue[0].x;
 			serpent.queue[i].y = serpent.queue[i-1].y + 1;
 			carte[serpent.queue[i].x][serpent.queue[i].y] = '#';
@@ -239,7 +251,7 @@ void accueil(char carte[largeurPlateau][hauteurPlateau], serpent serpent) { // a
 }
 
 void gameover(char carte[largeurPlateau][hauteurPlateau], serpent serpent) { // menu gameover
-	_getch();
+	//_getch();
 	system("cls");
 	Gotoxy(5, 10);
 	printf("Vous avez perdu :(");
