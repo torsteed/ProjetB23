@@ -79,7 +79,7 @@ void refreshPlateau(char carte[largeurPlateau][hauteurPlateau],serpent serpent) 
 		printf("\n");
 	}
 	Gotoxy(52,1);
-	printf("Score:%d\n", (serpent.taille)-5);
+	printf("Score:%d", (serpent.taille)-7);
 }
 
 int nbrealeatoire(int a, int b) {
@@ -87,7 +87,7 @@ int nbrealeatoire(int a, int b) {
 	return rand() % (b - a) + a;
 }
 
-void generateFruit(char carte[largeurPlateau][hauteurPlateau],position* fruit) {
+void generateFruit(char carte[largeurPlateau][hauteurPlateau], position* fruit) {
 	fruit->x = nbrealeatoire(1, largeurPlateau - 1);
 	fruit->y = nbrealeatoire(1, hauteurPlateau - 1);
 	carte[fruit->x][fruit->y] = 'O';
@@ -132,34 +132,35 @@ void queueDeplacement(char carte[largeurPlateau][hauteurPlateau], serpent* serpe
 }
 
 void deplacement(char carte[largeurPlateau][hauteurPlateau], serpent* serpent,position* fruit) {
-	int direction = 0;
+	int direction = 1;
 	while (true) {
 		switch (_getch()) {
 		case HAUT:
+			if (direction != 3) {
 				direction = 1;
 				queueDeplacement(carte, &*serpent, direction);
-			
+			}
 			break;
 
 		case GAUCHE:
-				
+			if (direction != 4) {
 				direction = 2;
 				queueDeplacement(carte, &*serpent, direction);
-			
+			}
 			break;
 
 		case BAS:
-			
+			if (direction != 1) {
 				direction = 3;
 				queueDeplacement(carte, &*serpent, direction);
-			
+			}
 			break;
 
 		case DROITE:
-			
+			if (direction != 2) {
 				direction = 4;
 				queueDeplacement(carte, &*serpent, direction);
-			
+			}
 			break;
 		}
 		
