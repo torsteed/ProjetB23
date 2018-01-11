@@ -91,7 +91,7 @@ void refreshPlateau(char carte[largeurPlateau][hauteurPlateau],serpent serpent) 
 		printf("\n");
 	}
 	Gotoxy(52,1);		//affichage temp et score
-	printf("Score: %d\n", (serpent.taille)-5);
+	printf("Score: %d", (serpent.taille)-7);
 	Gotoxy(52, 3);
 	printf("Temps restant: %d sec", temp);
 }
@@ -146,7 +146,7 @@ void queueDeplacement(char carte[largeurPlateau][hauteurPlateau], serpent* serpe
 }
 
 void deplacement(char carte[largeurPlateau][hauteurPlateau], serpent* serpent,position* fruit) {
-	int direction = 0;
+	int direction = 1;
 	while (true) {
 		switch (_getch()) {
 		case HAUT:

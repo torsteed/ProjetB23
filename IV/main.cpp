@@ -59,14 +59,14 @@ int Timer() {
 	int Time;		//timer 
 	clock_t t1;
 	t1 = clock()/ CLOCKS_PER_SEC;
-	Time = 90 - t1;
-	return  Time;
+	t1;
+	return  t1;
 }
 
-void refreshPlateau(char carte[largeurPlateau][hauteurPlateau],serpent serpent) {
+void refreshPlateau(char carte[largeurPlateau][hauteurPlateau],serpent serpent, int temp) {
 	system("cls");
-	int temp = Timer();
-	if (temp <= 0) {	//temps à 0 = mort
+	int time =90 -(Timer() - temp);
+	if (time <= 0) {	//temps à 0 = mort
 		gameover(carte, serpent);
 	}
 	for (int y = 0; y < hauteurPlateau; y++) {
@@ -91,9 +91,9 @@ void refreshPlateau(char carte[largeurPlateau][hauteurPlateau],serpent serpent) 
 		printf("\n");
 	}
 	Gotoxy(52,1);		//affichage temp et score
-	printf("Score: %d\n", (serpent.taille)-5);
+	printf("Score: %d", (serpent.taille)-7);
 	Gotoxy(52, 3);
-	printf("Temps restant: %d sec", temp);
+	printf("Temps restant: %d sec",time);
 }
 
 int nbrealeatoire(int a, int b) {
@@ -145,7 +145,7 @@ void queueDeplacement(char carte[largeurPlateau][hauteurPlateau], serpent* serpe
 	carte[serpent->queue[serpent->taille - 1].x][serpent->queue[serpent->taille - 1].y] = ' ';
 }
 
-void deplacement(char carte[largeurPlateau][hauteurPlateau], serpent* serpent,position* fruit) {
+void deplacement(char carte[largeurPlateau][hauteurPlateau], serpent* serpent,position* fruit,int temp) {
 	int direction = 0;
 	while (true) {
 		switch (_getch()) {
@@ -189,13 +189,61 @@ void deplacement(char carte[largeurPlateau][hauteurPlateau], serpent* serpent,po
 				break;
 			}
 		}
-		refreshPlateau(carte, *serpent);
+		refreshPlateau(carte, *serpent,temp);
 	}
 }
 
+void deplacementInter(char carte[largeurPlateau][hauteurPlateau], serpent* serpent, position* fruit,int temp) {
+	int direction = 0;
+	while (true) {
+		switch (_getch()) {
+		case HAUT:
+			if (direction != 3) {
+				direction = 1;
+				queueDeplacement(carte, &*serpent, direction);
+			}
+			break;
+
+		case GAUCHE:
+			if (direction != 4) {
+				direction = 2;
+				queueDeplacement(carte, &*serpent, direction);
+			}
+			break;
+
+		case BAS:
+			if (direction != 1) {
+				direction = 3;
+				queueDeplacement(carte, &*serpent, direction);
+			}
+			break;
+
+		case DROITE:
+			if (direction != 2) {
+				direction = 4;
+				queueDeplacement(carte, &*serpent, direction);
+			}
+			break;
+		}
+
+		//collision
+		if (serpent->queue[0].x == fruit->x && serpent->queue[0].y == fruit->y) {
+			serpent->taille++;
+			generateFruit(carte, &*fruit);
+		}
+		for (int i = 1; i < serpent->taille - 1; i++) {
+			if (serpent->queue[0].x == serpent->queue[i].x && serpent->queue[0].y == serpent->queue[i].y) {
+				gameover(carte, *serpent);
+				break;
+			}
+		}
+		refreshPlateau(carte, *serpent,temp);
+	}
+}
 
 void premierSerpent(char carte[largeurPlateau][hauteurPlateau], serpent serpent) {
 	position fruit;
+	int temp = Timer();
 	generateFruit(carte,&fruit);
 		serpent.queue[0].x = largeurPlateau / 2;
 		serpent.queue[0].y = hauteurPlateau / 2;
@@ -206,14 +254,38 @@ void premierSerpent(char carte[largeurPlateau][hauteurPlateau], serpent serpent)
 			carte[serpent.queue[i].x][serpent.queue[i].y] = '#';
 		}
 		carte[serpent.queue[0].x][serpent.queue[0].y] = '@';
-		refreshPlateau(carte,serpent);
-		deplacement(carte, &serpent,&fruit);
+		refreshPlateau(carte,serpent,temp);
+		deplacement(carte, &serpent,&fruit,temp);
+
+}
+
+void premierSerpentInter(char carte[largeurPlateau][hauteurPlateau], serpent serpent) {
+	position fruit;
+	int temp = Timer();
+	generateFruit(carte, &fruit);
+	serpent.queue[0].x = largeurPlateau / 2;
+	serpent.queue[0].y = hauteurPlateau / 2;
+	serpent.taille = 7;
+	for (int i = 1; i < serpent.taille - 1; i++) {
+		serpent.queue[i].x = serpent.queue[0].x;
+		serpent.queue[i].y = serpent.queue[i - 1].y + 1;
+		carte[serpent.queue[i].x][serpent.queue[i].y] = '#';
+	}
+	carte[serpent.queue[0].x][serpent.queue[0].y] = '@';
+	refreshPlateau(carte, serpent,temp);
+	deplacementInter(carte, &serpent, &fruit,temp);
 
 }
 
 void initialisation(char carte[largeurPlateau][hauteurPlateau],serpent serpent) {
 	definePlateau(carte);
 	premierSerpent(carte,serpent);
+}
+
+
+void initialisationinter(char carte[largeurPlateau][hauteurPlateau], serpent serpent) {
+	definePlateau(carte);
+	premierSerpentInter(carte, serpent);
 }
 
 int menu(const char* ch[], int taille, int x, int y) { // fonction pour créer un menu et renvoie le numéro du choix
