@@ -66,7 +66,7 @@ int Timer() {
 void refreshPlateau(char carte[largeurPlateau][hauteurPlateau],serpent serpent) {
 	system("cls");
 	int temp = Timer();
-	if (temp <= 0) {	//temp à 0 = mort
+	if (temp <= 0) {	//temps à 0 = mort
 		gameover(carte, serpent);
 	}
 	for (int y = 0; y < hauteurPlateau; y++) {
@@ -150,23 +150,31 @@ void deplacement(char carte[largeurPlateau][hauteurPlateau], serpent* serpent,po
 	while (true) {
 		switch (_getch()) {
 		case HAUT:
+			if (direction != 3) {
 				direction = 1;
 				queueDeplacement(carte, &*serpent, direction);
+			}
 			break;
 
 		case GAUCHE:
+			if (direction != 4) {
 				direction = 2;
 				queueDeplacement(carte, &*serpent, direction);
+			}
 			break;
 
 		case BAS:
+			if (direction != 1) {
 				direction = 3;
 				queueDeplacement(carte, &*serpent, direction);
+			}
 			break;
 
 		case DROITE:
+			if (direction != 2) {
 				direction = 4;
 				queueDeplacement(carte, &*serpent, direction);
+			}
 			break;
 		}
 		
@@ -244,13 +252,16 @@ void accueil(char carte[largeurPlateau][hauteurPlateau], serpent serpent) { // a
 	printf("--------------------------------------------------------------\n\n");
 	Gotoxy(5, 14);
 	printf("Choisissez une option :\n\n");
-	const char* tabchoix[] = { "Jouer (deplacement manuel)","Quitter" }; // définition du tableau contenant les choix
-	int c = menu(tabchoix, 2, 5, 16); // affichage menu en (5,16) et retour choix
+	const char* tabchoix[] = { "Jouer (deplacement manuel)","Jouer (niveau intermediaire)","Quitter" }; // définition du tableau contenant les choix
+	int c = menu(tabchoix, 3, 5, 16); // affichage menu en (5,16) et retour choix
 	switch (c) { // selon le choix
 	case 1:
 		initialisation(carte, serpent); // on lance le jeu si choix 1
 		break;
-	case 2: // on quitte le jeu si choix 2
+	case 2: // on lance le jeu intermediaire si choix 2
+		initialisationinter(carte, serpent);
+		break;
+	case 3: // on quitte le jeu si choix 3
 		system("cls");
 		exit(1);
 		break;
