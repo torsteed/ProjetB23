@@ -42,7 +42,7 @@ typedef struct serpent serpent;
 
 void gameover(char carte[largeurPlateau][hauteurPlateau], serpent serpent); // menu gameover
 
-void definePlateau(char carte[largeurPlateau][hauteurPlateau]) {
+void definePlateau(char carte[largeurPlateau][hauteurPlateau]) {		//affichage plateau manuel
 	for (int y = 0; y < hauteurPlateau; y++) {
 		for (int x = 0; x < largeurPlateau; x++) {
 			if (y == 0 || x == 0 || y == hauteurPlateau - 1 || x == largeurPlateau - 1) {
@@ -55,10 +55,22 @@ void definePlateau(char carte[largeurPlateau][hauteurPlateau]) {
 	}
 }
 
+int Timer() {
+	int Time;		//timer 
+	clock_t t1;
+	t1 = clock()/ CLOCKS_PER_SEC;
+	Time = 90 - t1;
+	return  Time;
+}
+
 void refreshPlateau(char carte[largeurPlateau][hauteurPlateau],serpent serpent) {
 	system("cls");
+	int temp = Timer();
+	if (temp <= 0) {	//temp à 0 = mort
+		gameover(carte, serpent);
+	}
 	for (int y = 0; y < hauteurPlateau; y++) {
-		for (int x = 0; x < largeurPlateau; x++) {
+		for (int x = 0; x < largeurPlateau; x++) {		//coloriage et affichage
 			if (carte[x][y] == '@') {
 				color(2, 0);
 				printf("%c", carte[x][y]);
@@ -78,8 +90,10 @@ void refreshPlateau(char carte[largeurPlateau][hauteurPlateau],serpent serpent) 
 		}
 		printf("\n");
 	}
-	Gotoxy(52,1);
-	printf("Score:%d\n", (serpent.taille)-5);
+	Gotoxy(52,1);		//affichage temp et score
+	printf("Score: %d\n", (serpent.taille)-5);
+	Gotoxy(52, 3);
+	printf("Temps restant: %d sec", temp);
 }
 
 int nbrealeatoire(int a, int b) {
@@ -138,28 +152,21 @@ void deplacement(char carte[largeurPlateau][hauteurPlateau], serpent* serpent,po
 		case HAUT:
 				direction = 1;
 				queueDeplacement(carte, &*serpent, direction);
-			
 			break;
 
 		case GAUCHE:
-				
 				direction = 2;
 				queueDeplacement(carte, &*serpent, direction);
-			
 			break;
 
 		case BAS:
-			
 				direction = 3;
 				queueDeplacement(carte, &*serpent, direction);
-			
 			break;
 
 		case DROITE:
-			
 				direction = 4;
 				queueDeplacement(carte, &*serpent, direction);
-			
 			break;
 		}
 		
