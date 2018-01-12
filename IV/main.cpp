@@ -34,7 +34,7 @@ struct position {
 typedef struct position position;
 
 struct serpent {
-	position queue[99];
+	position queue[30];
 	int taille;
 };
 
@@ -102,15 +102,20 @@ int nbrealeatoire(int a, int b) {
 }
 
 void generateFruit(char carte[largeurPlateau][hauteurPlateau],position* fruit, serpent serpent) {
-	generate:
-	fruit->x = nbrealeatoire(1, largeurPlateau - 1);
-	fruit->y = nbrealeatoire(1, hauteurPlateau - 1);
-	for (int i = 0; i < serpent.taille; i++) { // on vérifie que le fruit n'apparaît pas sur le serpent
-		if (fruit->x == serpent.queue[i].x && fruit->y == serpent.queue[i].y) {
-			goto generate;
+	while (true) {
+		int fruitcheck = false;
+		fruit->x = nbrealeatoire(1, largeurPlateau - 1);
+		fruit->y = nbrealeatoire(1, hauteurPlateau - 1);
+		for (int i = 0; i < serpent.taille; i++) { // on vérifie que le fruit n'apparaît pas sur le serpent
+			if (fruit->x == serpent.queue[i].x && fruit->y == serpent.queue[i].y) {
+				fruitcheck = true;
+			}
+		}
+		if (fruitcheck == false) {
+			carte[fruit->x][fruit->y] = 'O';
+			break;
 		}
 	}
-	carte[fruit->x][fruit->y] = 'O';
 }
 
 void queueDeplacement(char carte[largeurPlateau][hauteurPlateau], serpent* serpent,int direction) {
@@ -152,7 +157,7 @@ void queueDeplacement(char carte[largeurPlateau][hauteurPlateau], serpent* serpe
 }
 
 void deplacement(char carte[largeurPlateau][hauteurPlateau], serpent* serpent,position* fruit,int temp) {
-	int direction = 0;
+	int direction = 1;
 	while (true) {
 		switch (_getch()) {
 		case HAUT:
@@ -199,53 +204,82 @@ void deplacement(char carte[largeurPlateau][hauteurPlateau], serpent* serpent,po
 	}
 }
 
+
+
+
 void deplacementInter(char carte[largeurPlateau][hauteurPlateau], serpent* serpent, position* fruit,int temp) {
-	int direction = 0;
-	while (true) {
-		switch (_getch()) {
-		case HAUT:
-			if (direction != 3) {
-				direction = 1;
-				queueDeplacement(carte, &*serpent, direction);
+	int direction = 1;
+	int key=HAUT;
+	while(true){
+			Sleep(0);
+			if(kbhit()!=0){		//detection touche de clavier
+			key = _getch();
 			}
-			break;
+			switch (key) {
+				case HAUT:
+					if (direction != 3) {
+						direction = 1;
+						queueDeplacement(carte,&*serpent,direction);
+					}
+					else{
+						direction = 3;
+						queueDeplacement(carte,&*serpent,direction);
+					}
+					break;
 
-		case GAUCHE:
-			if (direction != 4) {
-				direction = 2;
-				queueDeplacement(carte, &*serpent, direction);
-			}
-			break;
+				case GAUCHE:
+					if (direction != 4) {
+						direction = 2;
+						queueDeplacement(carte,&*serpent,direction);
+					}
+					else{
+						direction = 4;
+						queueDeplacement(carte,&*serpent,direction);
+					}
+					break;
 
-		case BAS:
-			if (direction != 1) {
-				direction = 3;
-				queueDeplacement(carte, &*serpent, direction);
-			}
-			break;
+				case BAS:
+					if (direction != 1) {
+						direction = 3;
+						queueDeplacement(carte,&*serpent,direction);
+					}
+					else{
+						direction = 1;
+						queueDeplacement(carte,&*serpent,direction);
+					}
+					break;
 
-		case DROITE:
-			if (direction != 2) {
-				direction = 4;
-				queueDeplacement(carte, &*serpent, direction);
-			}
-			break;
-		}
+				case DROITE:
+					if (direction != 2) {
+						direction = 4;
+						queueDeplacement(carte,&*serpent,direction);
+					}
+					else{
+						direction = 2;
+						queueDeplacement(carte,&*serpent,direction);
+					}
+					break;
+				default:
+					queueDeplacement(carte,&*serpent,direction);
+					break;
+				}
 
-		//collision
-		if (serpent->queue[0].x == fruit->x && serpent->queue[0].y == fruit->y) {
-			serpent->taille++;
-			generateFruit(carte, &*fruit, *serpent);
-		}
-		for (int i = 1; i < serpent->taille - 1; i++) {
-			if (serpent->queue[0].x == serpent->queue[i].x && serpent->queue[0].y == serpent->queue[i].y) {
-				gameover(carte, *serpent);
-				break;
+			//collision fruit
+			if (serpent->queue[0].x == fruit->x && serpent->queue[0].y == fruit->y) {
+				serpent->taille++;
+				generateFruit(carte, &*fruit);
 			}
-		}
-		refreshPlateau(carte, *serpent,temp);
+			//collision serpent
+			for (int i = 1; i < serpent->taille - 1; i++) {
+				if (serpent->queue[0].x == serpent->queue[i].x && serpent->queue[0].y == serpent->queue[i].y) {
+					gameover(carte, *serpent);
+					break;
+				}
+			}
+			refreshPlateau(carte, *serpent,temp);
 	}
 }
+
 
 void premierSerpent(char carte[largeurPlateau][hauteurPlateau], serpent serpent) {
 	position fruit;
@@ -280,7 +314,6 @@ void premierSerpentInter(char carte[largeurPlateau][hauteurPlateau], serpent ser
 	carte[serpent.queue[0].x][serpent.queue[0].y] = '@';
 	refreshPlateau(carte, serpent,temp);
 	deplacementInter(carte, &serpent, &fruit,temp);
-
 }
 
 void initialisation(char carte[largeurPlateau][hauteurPlateau],serpent serpent) {
@@ -347,12 +380,11 @@ void accueil(char carte[largeurPlateau][hauteurPlateau], serpent serpent) { // a
 }
 
 void gameover(char carte[largeurPlateau][hauteurPlateau], serpent serpent) { // menu gameover
-	//_getch();
 	system("cls");
 	Gotoxy(5, 10);
 	printf("Vous avez perdu :(");
 	Gotoxy(5, 12);
-	printf("Votre score est de %d", (serpent.taille) - 7);
+	printf("Votre score est de : %d", (serpent.taille) - 7);
 	Gotoxy(5, 14);
 	printf("Voulez-vous rejouer?");
 	const char* tabchoix[] = { "Rejouer","Menu principal","Quitter" }; // choix menu
@@ -373,7 +405,7 @@ void gameover(char carte[largeurPlateau][hauteurPlateau], serpent serpent) { // 
 }
 
 
-int main(serpent serpent) {
+int main(serpent serpent) {							
 	char carte[largeurPlateau][hauteurPlateau];
 	accueil(carte, serpent); // on lance l'accueil
 	return 0;
