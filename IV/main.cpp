@@ -4,23 +4,26 @@
 #include <time.h>
 #include <Windows.h>
 
+// définition taille plateau
 #define hauteurPlateau 20
 #define largeurPlateau 50
 
+// définition code ascii des touches du clavier
 #define HAUT 72 
 #define GAUCHE 75 
-#define BAS 80		
+#define BAS 80
 #define DROITE 77
 #define ENTREE 13
 #define ECHAP 27  
 
-
+// procédure permettant de colorer le texte
 void color(int t, int f)
 {
 	HANDLE H = GetStdHandle(STD_OUTPUT_HANDLE);
 	SetConsoleTextAttribute(H, f * 16 + t);
 }
 
+// procédure permettant de placer le curseur à des coordonnées entrées en paramètre
 void Gotoxy(int column, int row) {
 	COORD c;
 	c.X = column;
@@ -36,26 +39,27 @@ struct position {
 typedef struct position position;
 
 struct serpent {
-	position queue[30];
-	int taille;
+	position queue[30]; // tableau de structures contenant les positions des élements de la queue
+	int taille; // taille de la queue
 };
 
 typedef struct serpent serpent;
 
+// on définit certains prototypes pour faciliter leur appel
 void gameover(char carte[largeurPlateau][hauteurPlateau], serpent serpent, int* typejeu,int haut); // menu gameover
 void premierSerpentInter(char carte[largeurPlateau][hauteurPlateau], serpent serpent,int larg,int haut, int* typejeu);
 void accueil(char carte[largeurPlateau][hauteurPlateau], serpent serpent); // affichage du menu accueil
-void printregles(char carte[largeurPlateau][hauteurPlateau], serpent serpent);
+void printregles(char carte[largeurPlateau][hauteurPlateau], serpent serpent); // affichage des règles
 
-void definePlateau(char carte[largeurPlateau][hauteurPlateau],int larg,int haut) {		//affichage plateau manuel
-	system("cls");
+void definePlateau(char carte[largeurPlateau][hauteurPlateau],int larg,int haut) {		// définition du plateau
+	system("cls"); // on efface la console
 	for (int y = 0; y < hauteurPlateau-haut; y++) {
-		for (int x = 0; x < largeurPlateau-larg; x++) {
-			if (y == 0 || x == 0 || y == (hauteurPlateau-haut) - 1 || x == (largeurPlateau-larg) - 1) {
-				carte[x][y] = 219;
+		for (int x = 0; x < largeurPlateau-larg; x++) { // taille du tableau = taille max - hauteur
+			if (y == 0 || x == 0 || y == (hauteurPlateau-haut) - 1 || x == (largeurPlateau-larg) - 1) { // sur les bords
+				carte[x][y] = 219; // on place un mur
 			}
 			else {
-				carte[x][y] = 32;
+				carte[x][y] = 32; // on place du vide sinon
 			}
 		}
 	}
@@ -69,13 +73,13 @@ int Timer() {
 	return  t1;
 }
 
-void refreshPlateau(char carte[largeurPlateau][hauteurPlateau],serpent serpent, int temp,int larg,int haut, int* typejeu) {
+void refreshPlateau(char carte[largeurPlateau][hauteurPlateau],serpent serpent, int temp,int larg,int haut, int* typejeu) { // rafraichissement affichage
 	system("cls");
-	int time =60 -(Timer() - temp);
+	int time =60 -(Timer() - temp); // décompteur
 	if (time <= 0) {	//temps à 0 = mort
 		gameover(carte, serpent, &*typejeu,haut);
 	}
-	for (int y = 0; y < (hauteurPlateau-haut); y++) {
+	for (int y = 0; y < (hauteurPlateau-haut); y++) { // balayage du plateau et remplissage des cases
 		for (int x = 0; x < (largeurPlateau-larg); x++) {		//coloriage et affichage
 			if (carte[x][y] == '@') {
 				color(2, 0);
@@ -96,34 +100,34 @@ void refreshPlateau(char carte[largeurPlateau][hauteurPlateau],serpent serpent, 
 		}
 		printf("\n");
 	}
-	if(*typejeu==2){
-		Gotoxy(52-larg,1);		//affichage temp et score
-		printf("Niveau: %d Score: %d",(haut/3),(serpent.taille)-3);
+	if(*typejeu==2){ // si mode de jeu intermediaire
+		Gotoxy(52-larg,1);		//affichage temps et score
+		printf("Niveau: %d Score: %d",(haut/3)+1,(serpent.taille)-3);
 	}
-	else{
+	else{ // mode manuel
 		Gotoxy(52-larg,1);	
 		printf("Score: %d", (serpent.taille)-3);
 	}
-	Gotoxy(52-larg, 3);
+	Gotoxy(52-larg, 3); // affichage temps restant
 	printf("Temps restant: %d sec",time);
 }
 
-int nbrealeatoire(int a, int b) {
+int nbrealeatoire(int a, int b) { // fonction générant des nombres aléatoires
 	srand(time(NULL));
 	return rand() % (b - a) + a;
 }
 
-void generateFruit(char carte[largeurPlateau][hauteurPlateau],position* fruit, serpent serpent,int larg,int haut) {
+void generateFruit(char carte[largeurPlateau][hauteurPlateau],position* fruit, serpent serpent,int larg,int haut) { // génération du fruit
 	while (true) {
-		int fruitcheck = false;
-		fruit->x = nbrealeatoire(1, (largeurPlateau-larg) - 1);
+		int fruitcheck = false; // on définit la vérification fruit sur serpent à faux
+		fruit->x = nbrealeatoire(1, (largeurPlateau-larg) - 1); // on génère les coordonnées
 		fruit->y = nbrealeatoire(1, (hauteurPlateau-haut) - 1);
 		for (int i = 0; i < serpent.taille; i++) { // on vérifie que le fruit n'apparaît pas sur le serpent
 			if (fruit->x == serpent.queue[i].x && fruit->y == serpent.queue[i].y) {
-				fruitcheck = true;
+				fruitcheck = true; 
 			}
 		}
-		if (fruitcheck == false) {
+		if (fruitcheck == false) { // on affiche le fruit seulement si fruitcheck est à faux, sinon retour début
 			carte[fruit->x][fruit->y] = 'O';
 			break;
 		}
@@ -131,17 +135,17 @@ void generateFruit(char carte[largeurPlateau][hauteurPlateau],position* fruit, s
 }
 
 void queueDeplacement(char carte[largeurPlateau][hauteurPlateau], serpent* serpent,int direction,int larg,int haut, int* typejeu) {
-	
-	for (int y = serpent->taille-1; y >= 1; y--) {  //queue qui bouge
-		serpent->queue[y].x = serpent->queue[y - 1].x;
+	// fonction déplaçant les éléments de la queue
+	for (int y = serpent->taille-1; y >= 1; y--) {  // on repasse tous les éléments en parlant de la fin
+		serpent->queue[y].x = serpent->queue[y - 1].x; // l'élément prend les coordonnées de l'élément précédent
 		serpent->queue[y].y = serpent->queue[y - 1].y;
 		carte[serpent->queue[y].x][serpent->queue[y].y] = '#';
 	}
-	switch (direction)
+	switch (direction) // on modifie les éléments de la queue en fonction de la direction du serpent
 	{
 	case 1 :
 		serpent->queue[0].y--;
-		if (serpent->queue[0].y == 0) {
+		if (serpent->queue[0].y == 0) { // on vérifie si le serpent arrive dans le mur
 			gameover(carte, *serpent, &*typejeu,haut);
 		}
 		break;
@@ -164,18 +168,19 @@ void queueDeplacement(char carte[largeurPlateau][hauteurPlateau], serpent* serpe
 		}
 		break;
 	}
-	carte[serpent->queue[0].x][serpent->queue[0].y] = '@';
-	carte[serpent->queue[serpent->taille - 1].x][serpent->queue[serpent->taille - 1].y] = ' ';
+	carte[serpent->queue[0].x][serpent->queue[0].y] = '@'; // on réecrit la tête au nouvel emplacement
+	carte[serpent->queue[serpent->taille - 1].x][serpent->queue[serpent->taille - 1].y] = ' '; // on efface l'ex-dernier élement de la queue
 }
 
 void deplacement(char carte[largeurPlateau][hauteurPlateau], serpent* serpent,position* fruit,int temp,int larg,int haut, int* typejeu) {
+	// fonction gérant les déplacements en fonction des touches
 	int direction = 1;
-	while (true) {
+	while (true) { // on fait une boucle vérifiant la touche appuyée
 		switch (_getch()) {
-		case HAUT:
-			if (direction != 3) {
-				direction = 1;
-				queueDeplacement(carte, &*serpent, direction,larg,haut, &*typejeu);
+		case HAUT: // si la touche pressée est le haut
+			if (direction != 3) { // on vérifie que le serpent ne va pas vers le bas pour ne pas revenir sur lui-même
+				direction = 1; // on reconfigure la direction
+				queueDeplacement(carte, &*serpent, direction,larg,haut, &*typejeu); // on lance le déplacement graphique du serpent
 			}
 			break;
 
@@ -199,18 +204,18 @@ void deplacement(char carte[largeurPlateau][hauteurPlateau], serpent* serpent,po
 				queueDeplacement(carte, &*serpent, direction,larg,haut, &*typejeu);
 			}
 			break;
-		case ECHAP:
+		case ECHAP: // si on appuie sur echap, on quitte la partie et on retourne au menu principal
 			system("cls");
 			accueil(carte,*serpent);
 			break;
 		}
 		
 		//collision
-		if (serpent->queue[0].x == fruit->x && serpent->queue[0].y == fruit->y) {
+		if (serpent->queue[0].x == fruit->x && serpent->queue[0].y == fruit->y) { // on vérifie si la tête du serpent rencontre un fruit
 			serpent->taille++;
 			generateFruit(carte, &*fruit, *serpent,larg,haut);
 		}
-		for (int i = 1; i < serpent->taille-1; i++) {
+		for (int i = 1; i < serpent->taille-1; i++) { // on vérifie si le serpent mort sa queue
 			if (serpent->queue[0].x == serpent->queue[i].x && serpent->queue[0].y == serpent->queue[i].y) {
 				gameover(carte, *serpent, &*typejeu,haut);
 				break;
@@ -221,9 +226,8 @@ void deplacement(char carte[largeurPlateau][hauteurPlateau], serpent* serpent,po
 }
 
 
-
-
 void deplacementInter(char carte[largeurPlateau][hauteurPlateau], serpent* serpent, position* fruit,int temp,int *larg,int *haut,int deltaT, int* typejeu) {
+	// même fonction que deplacement mais pour le niveau intermediaire
 	int direction = 1;
 	int key=HAUT;
 	while(true){
@@ -289,10 +293,10 @@ void deplacementInter(char carte[largeurPlateau][hauteurPlateau], serpent* serpe
 				serpent->taille++;
 				generateFruit(carte, &*fruit,*serpent,*larg,*haut);
 			}
-			if(serpent->taille>=6){		//next level
+			if(serpent->taille>=8){		//next level à un certain score
 				*haut = *haut+3;
 				*larg = *larg+6;
-				premierSerpentInter(carte,*serpent, *larg, *haut, &*typejeu);
+				premierSerpentInter(carte,*serpent, *larg, *haut, &*typejeu); // on redemarre le jeu pour le niveau suivant
 			}
 			//collision serpent
 			for (int i = 1; i < serpent->taille - 1; i++) {
@@ -307,34 +311,35 @@ void deplacementInter(char carte[largeurPlateau][hauteurPlateau], serpent* serpe
 
 
 void premierSerpent(char carte[largeurPlateau][hauteurPlateau], serpent serpent,int larg,int haut, int* typejeu) {
+	// initialisation du serpent - mode manuel
 	position fruit;
 	int temp = Timer();
-	generateFruit(carte,&fruit, serpent,larg,haut);
-		serpent.queue[0].x = largeurPlateau / 2;
-		serpent.queue[0].y = hauteurPlateau / 2;
-		serpent.taille = 3;
-		for (int i = 1;i < serpent.taille-1 ;i++) {
-			serpent.queue[i].x = serpent.queue[0].x;
-			serpent.queue[i].y = serpent.queue[i-1].y + 1;
-			carte[serpent.queue[i].x][serpent.queue[i].y] = '#';
-		}
-		carte[serpent.queue[0].x][serpent.queue[0].y] = '@';
-		refreshPlateau(carte,serpent,temp,larg,haut, &*typejeu);
-		deplacement(carte, &serpent,&fruit,temp,larg,haut, &*typejeu);
+	generateFruit(carte,&fruit, serpent,larg,haut); // on génère un fruit
+	serpent.queue[0].x = largeurPlateau / 2; // on définit les paramètres initiaux du serpent
+	serpent.queue[0].y = hauteurPlateau / 2;
+	serpent.taille = 3;
+	for (int i = 1;i < serpent.taille-1 ;i++) { // on affiche le premier serpent
+		serpent.queue[i].x = serpent.queue[0].x;
+		serpent.queue[i].y = serpent.queue[i-1].y + 1;
+		carte[serpent.queue[i].x][serpent.queue[i].y] = '#';
+	}
+	carte[serpent.queue[0].x][serpent.queue[0].y] = '@';
+	refreshPlateau(carte,serpent,temp,larg,haut, &*typejeu); // on rafraichit l'affichage
+	deplacement(carte, &serpent,&fruit,temp,larg,haut, &*typejeu); // on lance le jeu
 
 }
 
 void premierSerpentInter(char carte[largeurPlateau][hauteurPlateau], serpent serpent,int larg,int haut, int* typejeu) {
-	definePlateau(carte,larg,haut);
+	// initialisation du serpent - mode intermédiaire
+	definePlateau(carte,larg,haut); // on configure le tableau de base
 	position fruit;
 	int temp = Timer();
-	int deltaT =200-5*larg;
-		
-	generateFruit(carte, &fruit, serpent,larg,haut);
-	serpent.queue[0].x = (largeurPlateau-larg) / 2;
+	int deltaT =200-5*larg; // vitesse du serpent proportionnelle au level
+	generateFruit(carte, &fruit, serpent,larg,haut); // on génère un fruit
+	serpent.queue[0].x = (largeurPlateau-larg) / 2; // paramètres initiaux serpent
 	serpent.queue[0].y = (hauteurPlateau-haut) / 2;
 	serpent.taille = 3;
-	for (int i = 1; i < serpent.taille - 1; i++) {
+	for (int i = 1; i < serpent.taille - 1; i++) { // on print les éléments du serpent
 		serpent.queue[i].x = serpent.queue[0].x;
 		serpent.queue[i].y = serpent.queue[i - 1].y + 1;
 		carte[serpent.queue[i].x][serpent.queue[i].y] = '#';
@@ -345,15 +350,17 @@ void premierSerpentInter(char carte[largeurPlateau][hauteurPlateau], serpent ser
 }
 
 void initialisation(char carte[largeurPlateau][hauteurPlateau],serpent serpent, int* typejeu) {
+	// on initialise le jeu pour le mode manuel
 	int larg = 0;
 	int haut = 0;
-	*typejeu = 1;
+	*typejeu = 1; // on sauvegarde le type du jeu pour le choix rejouer du menu gameover
 	definePlateau(carte,larg,haut);
 	premierSerpent(carte,serpent,larg,haut, &*typejeu);
 }
 
 
 void initialisationinter(char carte[largeurPlateau][hauteurPlateau], serpent serpent, int* typejeu) {
+	// on initialise le jeu pour le mode intermédiaire
 	int larg=10;
 	int haut=0;
 	*typejeu = 2;
@@ -392,6 +399,8 @@ int menu(const char* ch[], int taille, int x, int y) { // fonction pour créer u
 
 void accueil(char carte[largeurPlateau][hauteurPlateau], serpent serpent) { // affichage du menu accueil
 	int typejeu = 1;
+	Gotoxy(5, 24);
+	printf("Un programme de DELECLUSE Raphael et PYNTHE Thomas"); // copyright
 	Gotoxy(5, 10);
 	printf("Bienvenue dans le Snake\n\n");
 	printf("--------------------------------------------------------------\n\n");
@@ -420,9 +429,9 @@ void gameover(char carte[largeurPlateau][hauteurPlateau], serpent serpent, int* 
 	system("cls");
 	Gotoxy(5, 10);
 	printf("Vous avez perdu :(");
-	if(*typejeu==2){
+	if(*typejeu==2){ // on configure l'affichage de fin en fonction du type de jeu
 		Gotoxy(5, 12);
-		printf("Highscore: Nieau: %d Score: %d",(haut/3), (serpent.taille) - 3);
+		printf("Highscore: Nieau: %d Score: %d",(haut/3)+1, (serpent.taille) - 3);
 	}
 	else{
 		Gotoxy(5, 12);
@@ -434,12 +443,12 @@ void gameover(char carte[largeurPlateau][hauteurPlateau], serpent serpent, int* 
 	int c = menu(tabchoix, 3, 5, 16); // retour choix menu
 	switch (c) {
 	case 1:
-		switch (*typejeu) {
+		switch (*typejeu) { // en fonction du mode joué
 		case 1:
-			initialisation(carte, serpent, &*typejeu); // rejouer
+			initialisation(carte, serpent, &*typejeu); // rejouer le mode manuel
 			break;
 		case 2:
-			initialisationinter(carte, serpent, &*typejeu);
+			initialisationinter(carte, serpent, &*typejeu); // rejouer le mode intermed
 			break;
 		}
 		break;
@@ -454,7 +463,7 @@ void gameover(char carte[largeurPlateau][hauteurPlateau], serpent serpent, int* 
 	}
 }
 
-void printregles(char carte[largeurPlateau][hauteurPlateau], serpent serpent) {
+void printregles(char carte[largeurPlateau][hauteurPlateau], serpent serpent) { // affichage des règles
 	system("cls");
 	Gotoxy(5, 3);
 	printf("REGLES DU JEU DU SNAKE");
@@ -465,7 +474,7 @@ void printregles(char carte[largeurPlateau][hauteurPlateau], serpent serpent) {
 	Gotoxy(5, 7);
 	printf("Attention, la partie prend fin lorsque le temps imparti est ecoule, lorsque vous foncez dans un mur,");
 	Gotoxy(5, 8);
-	printf("ou lorsque vous tenez de manger votre propre queue. Votre score correspond alors à la taille de votre queue.");
+	printf("ou lorsque vous tenez de manger votre propre queue. Votre score correspond alors a la taille de votre queue.");
 	Gotoxy(5, 9);
 	printf("Pour controler votre serpent, utilisez les touches directionnelles de votre clavier.");
 	Gotoxy(5, 11);
@@ -488,7 +497,7 @@ void printregles(char carte[largeurPlateau][hauteurPlateau], serpent serpent) {
 }
 
 int main(serpent serpent) {							
-	char carte[largeurPlateau][hauteurPlateau];
+	char carte[largeurPlateau][hauteurPlateau]; // on définit un tableau qui stocke la carte
 	accueil(carte, serpent); // on lance l'accueil
 	return 0;
 }
