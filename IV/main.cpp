@@ -101,9 +101,15 @@ int nbrealeatoire(int a, int b) {
 	return rand() % (b - a) + a;
 }
 
-void generateFruit(char carte[largeurPlateau][hauteurPlateau],position* fruit) {
+void generateFruit(char carte[largeurPlateau][hauteurPlateau],position* fruit, serpent serpent) {
+	generate:
 	fruit->x = nbrealeatoire(1, largeurPlateau - 1);
 	fruit->y = nbrealeatoire(1, hauteurPlateau - 1);
+	for (int i = 0; i < serpent.taille; i++) { // on vérifie que le fruit n'apparaît pas sur le serpent
+		if (fruit->x == serpent.queue[i].x && fruit->y == serpent.queue[i].y) {
+			goto generate;
+		}
+	}
 	carte[fruit->x][fruit->y] = 'O';
 }
 
@@ -181,7 +187,7 @@ void deplacement(char carte[largeurPlateau][hauteurPlateau], serpent* serpent,po
 		//collision
 		if (serpent->queue[0].x == fruit->x && serpent->queue[0].y == fruit->y) {
 			serpent->taille++;
-			generateFruit(carte, &*fruit);
+			generateFruit(carte, &*fruit, *serpent);
 		}
 		for (int i = 1; i < serpent->taille-1; i++) {
 			if (serpent->queue[0].x == serpent->queue[i].x && serpent->queue[0].y == serpent->queue[i].y) {
@@ -229,7 +235,7 @@ void deplacementInter(char carte[largeurPlateau][hauteurPlateau], serpent* serpe
 		//collision
 		if (serpent->queue[0].x == fruit->x && serpent->queue[0].y == fruit->y) {
 			serpent->taille++;
-			generateFruit(carte, &*fruit);
+			generateFruit(carte, &*fruit, *serpent);
 		}
 		for (int i = 1; i < serpent->taille - 1; i++) {
 			if (serpent->queue[0].x == serpent->queue[i].x && serpent->queue[0].y == serpent->queue[i].y) {
@@ -244,7 +250,7 @@ void deplacementInter(char carte[largeurPlateau][hauteurPlateau], serpent* serpe
 void premierSerpent(char carte[largeurPlateau][hauteurPlateau], serpent serpent) {
 	position fruit;
 	int temp = Timer();
-	generateFruit(carte,&fruit);
+	generateFruit(carte,&fruit, serpent);
 		serpent.queue[0].x = largeurPlateau / 2;
 		serpent.queue[0].y = hauteurPlateau / 2;
 		serpent.taille = 7;
@@ -262,7 +268,7 @@ void premierSerpent(char carte[largeurPlateau][hauteurPlateau], serpent serpent)
 void premierSerpentInter(char carte[largeurPlateau][hauteurPlateau], serpent serpent) {
 	position fruit;
 	int temp = Timer();
-	generateFruit(carte, &fruit);
+	generateFruit(carte, &fruit, serpent);
 	serpent.queue[0].x = largeurPlateau / 2;
 	serpent.queue[0].y = hauteurPlateau / 2;
 	serpent.taille = 7;
@@ -346,9 +352,11 @@ void gameover(char carte[largeurPlateau][hauteurPlateau], serpent serpent) { // 
 	Gotoxy(5, 10);
 	printf("Vous avez perdu :(");
 	Gotoxy(5, 12);
+	printf("Votre score est de %d", (serpent.taille) - 7);
+	Gotoxy(5, 14);
 	printf("Voulez-vous rejouer?");
 	const char* tabchoix[] = { "Rejouer","Menu principal","Quitter" }; // choix menu
-	int c = menu(tabchoix, 3, 5, 14); // retour choix menu
+	int c = menu(tabchoix, 3, 5, 16); // retour choix menu
 	switch (c) {
 	case 1:
 		initialisation(carte, serpent); // rejouer
@@ -365,7 +373,7 @@ void gameover(char carte[largeurPlateau][hauteurPlateau], serpent serpent) { // 
 }
 
 
-int main(serpent serpent) {							
+int main(serpent serpent) {
 	char carte[largeurPlateau][hauteurPlateau];
 	accueil(carte, serpent); // on lance l'accueil
 	return 0;
